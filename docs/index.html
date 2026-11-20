@@ -2182,19 +2182,14 @@ const railOvl=()=>railMQ.matches;   /* 폰·좁은 창: 바가 화면 위로 덮
 /* 방의 폴더를 저장된 결과만으로 읽는다 (AI는 부르지 않는다) — 폴더 말풍선과 같은 규칙 */
 async function readRoomFolders(key){
   const stored=await S.get(key)||{};
-  const groups=stored.groups||[];
-  const defaults=[
-    {id:'default-images',name:'이미지'},
-    {id:'default-documents',name:'문서'}
-  ];
-  return {
-    groups:stored.defaultFoldersAdded
-      ? groups
-      : [...groups,...defaults.filter(folder=>!groups.some(g=>g.id===folder.id||g.name===folder.name))],
-    assign:stored.assign||{},
-    lock:stored.lock||{},
-    defaultFoldersAdded:true
-  };
+  const assign=stored.assign||{};
+  const used=new Set(Object.values(assign));
+  const groups=(stored.groups||[]).filter(g=>
+    key==='grpman:sample-tasks'||used.has(g.id)||
+    !((g.id==='default-images'&&g.name==='이미지')||
+      (g.id==='default-documents'&&g.name==='문서'))
+  );
+  return {groups,assign,lock:stored.lock||{}};
 }
 
 async function peekFolders(r){
@@ -5546,9 +5541,45 @@ async function seedTestData(){
   await S.set('rooms',[taskRoom,meetingRoom]);
 }
 
+async function seedSampleAttachments(room){
+  const seededKey='sample-attachments-v1';
+  if(!room||await S.get(seededKey)) return;
+
+  const samples=[
+    {
+      id:'sample-attachment-image',folder:'이미지',name:'담다-샘플-이미지.svg',type:'image/svg+xml',
+      content:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300"><rect width="480" height="300" rx="24" fill="#D8EDFF"/><path d="M240 48l30 62 68 10-49 48 11 68-60-32-60 32 11-68-49-48 68-10z" fill="#4FA9E8" stroke="#2474A8" stroke-width="6" stroke-linejoin="round"/><circle cx="110" cy="78" r="9" fill="#fff"/><circle cx="365" cy="201" r="12" fill="#fff"/></svg>'
+    },
+    {
+      id:'sample-attachment-document',folder:'문서',name:'담다-샘플-체크리스트.txt',type:'text/plain',
+      content:'담다 샘플 체크리스트\n\n□ 오늘 할 일 적기\n□ 필요한 파일 첨부하기\n□ 완료한 할 일 체크하기\n'
+    }
+  ];
+  const folderKey='grpman:'+room.id;
+  const man=await readRoomFolders(folderKey);
+  const list=await readList(room);
+  for(const sample of samples){
+    if(list.some(m=>m.id===sample.id)) continue;
+    let folder=man.groups.find(g=>g.name===sample.folder);
+    if(!folder){
+      folder={id:newGid(),name:sample.folder};
+      man.groups.push(folder);
+    }
+    const blob=new Blob([sample.content],{type:sample.type});
+    const file={id:sample.id+'-file',name:sample.name,type:sample.type,size:blob.size};
+    await IDB.put(file.id,{blob,name:file.name,type:file.type});
+    man.assign[sample.id]=folder.id;
+    man.lock[sample.id]=true;
+    list.push({id:sample.id,type:'memo',text:'',file,ts:Date.now(),done:false});
+  }
+  if(await S.set(folderKey,man)&&await S.set(key(room),list)) await S.set(seededKey,true);
+}
+
 async function boot(){
   await seedTestData();
   await loadRooms();
+  try{ await seedSampleAttachments(rooms.find(r=>r.id==='sample-tasks')); }
+  catch(e){ console.warn('샘플 파일을 저장하지 못했어요',e); }
   await openBrief();
 }
 boot();
