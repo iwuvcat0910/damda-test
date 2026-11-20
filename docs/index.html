@@ -432,7 +432,7 @@ html.kb body{align-items:flex-start}
 #scChat.brief .pill>#hCam,#scChat.brief .pill>#hFile,#scChat.brief .pill>#txt,#scChat.brief .pill>#send{opacity:0;pointer-events:none;transition:opacity .1s}
 #scChat.brief.hopen #hSearch,#scChat.brief.hopen #hFold{width:0;margin-left:-10px;opacity:0;border-width:0;pointer-events:none}
 #scChat.brief.hopen .pill{width:100%;height:auto;min-height:55px;border-radius:25px;background:#fff;border-color:var(--line)}
-#scChat.brief.hopen .pill:focus-within{border-color:var(--accent)}
+#scChat.brief.hopen .pill:focus-within{border-color:#4FA9E8}
 #scChat.brief.hopen #hChat{opacity:0;pointer-events:none}
 #scChat.brief.hopen .pill>#hCam,#scChat.brief.hopen .pill>#hFile,#scChat.brief.hopen .pill>#txt,#scChat.brief.hopen .pill>#send{opacity:1;pointer-events:auto;
   transition:opacity .2s .18s}
@@ -740,6 +740,10 @@ body.nosel,body.nosel *{-webkit-user-select:none!important;user-select:none!impo
 #send{border:0;border-radius:50%;width:40px;height:40px;margin:6.5px 6.5px 6.5px 0;flex:0 0 auto;cursor:pointer;
   background:var(--accent);color:#fff;display:grid;place-items:center}
 #send:disabled{background:var(--ctrl);cursor:default}
+#scChat.brief.hopen #send:not(:disabled){background:#4FA9E8}
+#scChat.brief.hopen #whenHint{background:#D8EDFF;border-color:#B6D8F2;color:#245A80}
+#scChat.brief.hopen #whenEdit{color:#245A80;box-shadow:inset 0 0 0 1px #B6D8F2}
+#scChat.brief.hopen #whenEdit:hover{background:#D8EDFF}
 #send svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;
   stroke-linecap:round;stroke-linejoin:round}
 
